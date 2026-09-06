@@ -1,4 +1,5 @@
 require('dotenv').config();
+const authRoutes = require('./routes/authRoutes');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -27,6 +28,7 @@ if (process.env.NODE_ENV === 'development') {
 
 // Routes
 app.use('/api/health', healthRoutes);
+app.use('/api/auth', authRoutes);
 
 // Error handling (must be last)
 app.use(notFound);
