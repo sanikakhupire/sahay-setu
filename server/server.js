@@ -9,6 +9,7 @@ const connectDB = require('./config/db');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 const healthRoutes = require('./routes/healthRoutes');
 const needRoutes = require('./routes/needRoutes');
+const matchRoutes = require('./routes/matchRoutes');
 
 // Connect to MongoDB
 connectDB();
@@ -33,6 +34,7 @@ if (process.env.NODE_ENV === 'development') {
 app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/resources', resourceRoutes);
+app.use('/api/matches', matchRoutes);
 
 // Error handling (must be last)
 app.use(notFound);
