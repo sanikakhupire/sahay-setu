@@ -8,6 +8,7 @@ const morgan = require('morgan');
 const connectDB = require('./config/db');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 const healthRoutes = require('./routes/healthRoutes');
+const needRoutes = require('./routes/needRoutes');
 
 // Connect to MongoDB
 connectDB();
@@ -22,6 +23,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use('/api/needs', needRoutes);
 
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
