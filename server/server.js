@@ -11,6 +11,7 @@ const healthRoutes = require('./routes/healthRoutes');
 const needRoutes = require('./routes/needRoutes');
 const matchRoutes = require('./routes/matchRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 // Connect to MongoDB
 connectDB();
@@ -38,6 +39,7 @@ app.use('/api/resources', resourceRoutes);
 app.use('/api/matches', matchRoutes);
 app.use(express.static('public'));
 app.use('/api/upload', uploadRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Error handling (must be last)
 app.use(notFound);
