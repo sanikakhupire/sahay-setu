@@ -85,6 +85,14 @@ const needSchema = new mongoose.Schema(
       ref: 'Resource',
       default: null,
     },
+    verificationPhoto: {
+      type: String,
+      default: null,
+    },
+    fulfillmentPhoto: {
+      type: String, // proof photo when marked fulfilled
+      default: null,
+    },
   },
   { timestamps: true }
 );

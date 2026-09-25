@@ -76,6 +76,10 @@ const resourceSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    verificationPhoto: {
+      type: String, // Cloudinary URL
+      default: null,
+    },
   },
   { timestamps: true }
 );

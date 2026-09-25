@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head><title>Upload Test</title></head>
+<body>
+  <h2>Sahay Setu Upload Test</h2>
+
+  <div>
+    <label>JWT Token:</label><br>
+    <input type="text" id="token" size="80" placeholder="Paste your Bearer token here">
+  </div>
+  <br>
+  <div>
+    <label>Resource ID:</label><br>
+    <input type="text" id="resourceId" size="50" placeholder="Paste resource _id here">
+  </div>
+  <br>
+  <div>
+    <label>Photo:</label><br>
+    <input type="file" id="photo" accept="image/*">
+  </div>
+  <br>
+  <button id="uploadBtn">Upload</button>
+
+  <pre id="result" style="background:#eee; padding:10px; white-space:pre-wrap;"></pre>
+
+  <script src="/upload-test.js"></script>
+</body>
+</html>

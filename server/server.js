@@ -10,6 +10,7 @@ const { notFound, errorHandler } = require('./middleware/errorHandler');
 const healthRoutes = require('./routes/healthRoutes');
 const needRoutes = require('./routes/needRoutes');
 const matchRoutes = require('./routes/matchRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
 
 // Connect to MongoDB
 connectDB();
@@ -36,6 +37,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/resources', resourceRoutes);
 app.use('/api/matches', matchRoutes);
 app.use(express.static('public'));
+app.use('/api/upload', uploadRoutes);
 
 // Error handling (must be last)
 app.use(notFound);
