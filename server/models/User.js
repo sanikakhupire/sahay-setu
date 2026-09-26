@@ -40,11 +40,7 @@ const userSchema = new mongoose.Schema(
     isPhoneVerified: {
       type: Boolean,
       default: false,
-    },
-    otp: {
-      code: { type: String, select: false },
-      expiresAt: { type: Date, select: false },
-    },
+    }
   },
   { timestamps: true }
 );

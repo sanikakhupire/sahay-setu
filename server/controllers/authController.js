@@ -1,9 +1,9 @@
 const User = require('../models/User');
 const generateToken = require('../utils/generateToken');
-const { generateOtp, sendOtp } = require('../utils/otpService');
+const { startOtp, checkOtp } = require('../utils/otpService');
 const asyncHandler = require('../utils/asyncHandler');
 
-// @desc    Register new user + send OTP for phone verification
+// @desc    Register new user + trigger OTP send via Twilio Verify
 // @route   POST /api/auth/register
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
@@ -15,7 +15,6 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new Error('User already exists with this phone number');
   }
 
-  // Prevent self-registration as admin — admins should be created manually/seeded
   const safeRole = role === 'admin' ? 'resident' : role;
 
   const user = await User.create({
@@ -27,14 +26,17 @@ const registerUser = asyncHandler(async (req, res) => {
     ward,
   });
 
-  // Generate & "send" OTP
-  const otp = generateOtp();
-  user.otp = {
-    code: otp,
-    expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 min expiry
-  };
-  await user.save({ validateBeforeSave: false });
-  await sendOtp(user.phone, otp);
+  const otpResult = await startOtp(user.phone);
+
+  if (!otpResult.success) {
+    // Registration still succeeded, but flag the SMS issue so the frontend can react
+    return res.status(201).json({
+      success: true,
+      message: 'Registered, but OTP could not be sent. Try resending.',
+      userId: user._id,
+      otpError: otpResult.error,
+    });
+  }
 
   res.status(201).json({
     success: true,
@@ -43,36 +45,27 @@ const registerUser = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Verify phone OTP
+// @desc    Verify phone OTP via Twilio Verify
 // @route   POST /api/auth/verify-otp
 // @access  Public
 const verifyOtp = asyncHandler(async (req, res) => {
   const { userId, otp } = req.body;
 
-  const user = await User.findById(userId).select('+otp.code +otp.expiresAt');
+  const user = await User.findById(userId);
   if (!user) {
     res.status(404);
     throw new Error('User not found');
   }
 
-  if (!user.otp || !user.otp.code) {
-    res.status(400);
-    throw new Error('No OTP requested for this user');
-  }
+  const result = await checkOtp(user.phone, otp);
 
-  if (user.otp.expiresAt < new Date()) {
+  if (!result.valid) {
     res.status(400);
-    throw new Error('OTP has expired, please request a new one');
-  }
-
-  if (user.otp.code !== otp) {
-    res.status(400);
-    throw new Error('Invalid OTP');
+    throw new Error('Invalid or expired OTP');
   }
 
   user.isPhoneVerified = true;
-  user.otp = undefined;
-  await user.save({ validateBeforeSave: false });
+  await user.save();
 
   const token = generateToken(user._id, user.role);
 
@@ -90,7 +83,7 @@ const verifyOtp = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Resend OTP
+// @desc    Resend OTP via Twilio Verify
 // @route   POST /api/auth/resend-otp
 // @access  Public
 const resendOtp = asyncHandler(async (req, res) => {
@@ -102,13 +95,12 @@ const resendOtp = asyncHandler(async (req, res) => {
     throw new Error('User not found');
   }
 
-  const otp = generateOtp();
-  user.otp = {
-    code: otp,
-    expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-  };
-  await user.save({ validateBeforeSave: false });
-  await sendOtp(user.phone, otp);
+  const otpResult = await startOtp(user.phone);
+
+  if (!otpResult.success) {
+    res.status(500);
+    throw new Error('Failed to resend OTP: ' + otpResult.error);
+  }
 
   res.status(200).json({ success: true, message: 'OTP resent successfully' });
 });

@@ -1,6 +1,7 @@
 const Resource = require('../models/Resource');
 const Need = require('../models/Need');
 const asyncHandler = require('../utils/asyncHandler');
+const { uploadBufferToCloudinary } = require('../middleware/upload');
 
 // @desc    Upload/attach a verification photo to a resource
 // @route   POST /api/upload/resource/:id
@@ -22,7 +23,8 @@ const uploadResourcePhoto = asyncHandler(async (req, res) => {
     throw new Error('Not authorized to update this resource');
   }
 
-  resource.verificationPhoto = req.file.path; // Cloudinary gives back the hosted URL here
+  const result = await uploadBufferToCloudinary(req.file.buffer);
+  resource.verificationPhoto = result.secure_url;
   await resource.save();
 
   res.status(200).json({ success: true, resource });
@@ -48,7 +50,8 @@ const uploadNeedPhoto = asyncHandler(async (req, res) => {
     throw new Error('Not authorized to update this need');
   }
 
-  need.verificationPhoto = req.file.path;
+  const result = await uploadBufferToCloudinary(req.file.buffer);
+  need.verificationPhoto = result.secure_url;
   await need.save();
 
   res.status(200).json({ success: true, need });
@@ -69,7 +72,8 @@ const uploadFulfillmentPhoto = asyncHandler(async (req, res) => {
     throw new Error('Need not found');
   }
 
-  need.fulfillmentPhoto = req.file.path;
+  const result = await uploadBufferToCloudinary(req.file.buffer);
+  need.fulfillmentPhoto = result.secure_url;
   await need.save();
 
   res.status(200).json({ success: true, need });
