@@ -1,16 +1,7 @@
-import axios from 'axios';
+import { io } from 'socket.io-client';
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+const socket = io(import.meta.env.VITE_SOCKET_URL, {
+  autoConnect: false, // we connect manually once the user is logged in
 });
 
-// Attach the JWT token to every request automatically, if one exists
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-export default api;
+export default socket;
