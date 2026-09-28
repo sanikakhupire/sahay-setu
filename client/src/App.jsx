@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import Resources from './pages/Resources';
 
 function App() {
   return (
@@ -20,6 +21,14 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/resources"
+            element={
+              <ProtectedRoute>
+                <Resources />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
       </AuthProvider>
@@ -27,4 +36,4 @@ function App() {
   );
 }
 
-export default App; 
+export default App;
