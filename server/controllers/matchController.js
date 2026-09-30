@@ -3,6 +3,13 @@ const Resource = require('../models/Resource');
 const { findMatches } = require('../utils/matchingEngine');
 const asyncHandler = require('../utils/asyncHandler');
 
+// A need's own requester can act on it themselves (self-service). Volunteers
+// and admins can act on any need in the course of helping someone else.
+const canActOnNeed = (need, user) =>
+  need.requester.toString() === user._id.toString() ||
+  user.role === 'volunteer' ||
+  user.role === 'admin';
+
 // @desc    Get ranked resource matches for a specific need
 // @route   GET /api/matches/:needId
 // @access  Private
@@ -26,7 +33,7 @@ const getMatchesForNeed = asyncHandler(async (req, res) => {
 
 // @desc    Confirm a match — links a resource to a need, updates both statuses
 // @route   POST /api/matches/:needId/confirm
-// @access  Private
+// @access  Private (requester, volunteer, or admin)
 const confirmMatch = asyncHandler(async (req, res) => {
   const { resourceId } = req.body;
 
@@ -34,6 +41,11 @@ const confirmMatch = asyncHandler(async (req, res) => {
   if (!need) {
     res.status(404);
     throw new Error('Need not found');
+  }
+
+  if (!canActOnNeed(need, req.user)) {
+    res.status(403);
+    throw new Error('Not authorized to act on this need');
   }
 
   if (need.status !== 'open') {
@@ -52,7 +64,6 @@ const confirmMatch = asyncHandler(async (req, res) => {
     throw new Error('Resource is no longer available');
   }
 
-  // Link them
   need.status = 'matched';
   need.matchedResource = resource._id;
   await need.save();
@@ -60,7 +71,6 @@ const confirmMatch = asyncHandler(async (req, res) => {
   resource.status = 'reserved';
   await resource.save();
 
-  // Broadcast to everyone in this ward's room
   const io = req.app.get('io');
   io.to(`ward-${need.ward}`).emit('matchConfirmed', {
     needId: need._id,
@@ -81,7 +91,7 @@ const confirmMatch = asyncHandler(async (req, res) => {
 
 // @desc    Update dispatch status for a matched need (volunteer en route, arrived, fulfilled)
 // @route   PUT /api/matches/:needId/status
-// @access  Private
+// @access  Private (requester, volunteer, or admin)
 const updateDispatchStatus = asyncHandler(async (req, res) => {
   const { status } = req.body; // expected: 'dispatched' | 'fulfilled'
 
@@ -97,6 +107,11 @@ const updateDispatchStatus = asyncHandler(async (req, res) => {
     throw new Error('Need not found');
   }
 
+  if (!canActOnNeed(need, req.user)) {
+    res.status(403);
+    throw new Error('Not authorized to act on this need');
+  }
+
   if (need.status === 'fulfilled' || need.status === 'cancelled') {
     res.status(400);
     throw new Error(`Need is already ${need.status}, cannot update further`);
@@ -105,9 +120,6 @@ const updateDispatchStatus = asyncHandler(async (req, res) => {
   need.status = status;
   await need.save();
 
-  // If fulfilled, free up the resource for future matches... unless it's fully consumed
-  // (For an FYP scope, we'll mark it back to available — a real system might track
-  // partial consumption, but that's a reasonable simplification to state in your report.)
   if (status === 'fulfilled' && need.matchedResource) {
     const resource = await Resource.findById(need.matchedResource);
     if (resource) {

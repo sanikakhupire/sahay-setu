@@ -3,17 +3,19 @@ const router = express.Router();
 const {
   createResource,
   getMyResources,
+  getWardResources,
   getNearbyResources,
   updateResource,
   deleteResource,
 } = require('../controllers/resourceController');
 const { protect } = require('../middleware/authMiddleware');
 
-router.use(protect); // every route below requires login
+router.use(protect);
 
 router.post('/', createResource);
 router.get('/mine', getMyResources);
 router.get('/nearby', getNearbyResources);
+router.get('/', getWardResources);
 router.put('/:id', updateResource);
 router.delete('/:id', deleteResource);
 

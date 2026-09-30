@@ -37,6 +37,22 @@ const getMyResources = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, count: resources.length, resources });
 });
 
+// @desc    List resources in a ward (for the ward map and volunteer views)
+// @route   GET /api/resources?ward=..&status=..&type=..
+// @access  Private
+const getWardResources = asyncHandler(async (req, res) => {
+  const { ward, status, type } = req.query;
+
+  const query = {};
+  if (ward) query.ward = ward;
+  if (status) query.status = status;
+  if (type) query.type = type;
+
+  const resources = await Resource.find(query).populate('owner', 'name phone');
+
+  res.status(200).json({ success: true, count: resources.length, resources });
+});
+
 // @desc    Find resources near a given point, optionally filtered by type/status
 // @route   GET /api/resources/nearby?lat=..&lng=..&radius=..&type=..
 // @access  Private
@@ -123,6 +139,7 @@ const deleteResource = asyncHandler(async (req, res) => {
 module.exports = {
   createResource,
   getMyResources,
+  getWardResources,
   getNearbyResources,
   updateResource,
   deleteResource,
