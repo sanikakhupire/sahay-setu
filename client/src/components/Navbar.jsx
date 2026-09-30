@@ -26,6 +26,9 @@ function Navbar() {
           <NavLink to="/resources" className={linkClass}>
             My Resources
           </NavLink>
+          <NavLink to="/needs" className={linkClass}>
+            My Needs
+          </NavLink>
         </div>
 
         <div className="flex items-center gap-3">
@@ -44,4 +47,4 @@ function Navbar() {
   );
 }
 
-export default Navbar;  
+export default Navbar;
