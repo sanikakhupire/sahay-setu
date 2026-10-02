@@ -6,6 +6,9 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Resources from './pages/Resources';
 import Needs from './pages/Needs';
+import WardMapPage from './pages/WardMapPage';
+import VolunteerBoard from './pages/VolunteerBoard';
+import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
   return (
@@ -35,6 +38,30 @@ function App() {
             element={
               <ProtectedRoute>
                 <Needs />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/map"
+            element={
+              <ProtectedRoute>
+                <WardMapPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/volunteer"
+            element={
+              <ProtectedRoute roles={['volunteer', 'admin']}>
+                <VolunteerBoard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute roles={['admin']}>
+                <AdminDashboard />
               </ProtectedRoute>
             }
           />
